@@ -10,6 +10,7 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Yabx\Botobase\Dto\Account;
 use Yabx\Botobase\Dto\Service;
+use Yabx\Botobase\Service\DeepSeek;
 use Yabx\Botobase\Service\Mathpix;
 use Yabx\Botobase\Utils\EnumNormalizer;
 
@@ -30,6 +31,11 @@ class Botobase {
 
     public function useMathpix(): Mathpix {
         static $service = new Mathpix($this);
+        return $service;
+    }
+
+    public function useDeepSeek(): DeepSeek {
+        static $service = new DeepSeek($this);
         return $service;
     }
 
