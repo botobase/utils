@@ -2,6 +2,7 @@
 
 namespace Yabx\Botobase;
 
+use DateTimeImmutable;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
@@ -9,6 +10,7 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Yabx\Botobase\Dto\Account;
+use Yabx\Botobase\Dto\Gender;
 use Yabx\Botobase\Dto\Service;
 use Yabx\Botobase\Service\DeepSeek;
 use Yabx\Botobase\Service\Mathpix;
@@ -39,10 +41,31 @@ class Botobase {
         return $service;
     }
 
-    public function allocateAccount(Service $service, ?int $preferredId = null): Account {
+    public function addUser(int $id, bool $isPremium, ?string $source, ?Gender $gender = null, ?DateTimeImmutable $bornAt = null): void {
+        $this->request('POST', '/bots/users', [
+            'id' => $id,
+            'isPremium' => $isPremium,
+            'source' => $source ?: 'organic',
+            'gender' => $gender?->value,
+            'bornAt' => $bornAt?->format('Y-m-d')
+        ]);
+    }
+
+    public function updateUser(int $id, ?bool $isPremium = null, ?Gender $gender = null, ?DateTimeImmutable $bornAt = null, bool $isUpdated = false, bool $isAccessed = false): void {
+        $params = [
+            'id' => $id,
+            'isUpdated' => $isUpdated,
+            'isAccessed' => $isAccessed,
+        ];
+        if (isset($isPremium)) $params['isPremium'] = $isPremium;
+        if (isset($gender)) $params['gender'] = $gender->value;
+        if (isset($bornAt)) $params['bornAt'] = $bornAt->format('Y-m-d');
+        $this->request('PATCH', '/bots/users', $params);
+    }
+
+    public function allocateAccount(Service $service): Account {
         $account = $this->request('GET', 'accounts/allocate', [
             'service' => $service->value,
-            'preferredId' => $preferredId
         ]);
         return $this->serializer->denormalize($account, Account::class);
     }
@@ -60,7 +83,7 @@ class Botobase {
             RequestOptions::TIMEOUT => 30,
             RequestOptions::HTTP_ERRORS => false
         ];
-        if($method === 'GET') {
+        if ($method === 'GET') {
             $options[RequestOptions::QUERY] = ['__payload' => json_encode($params)];
         } else {
             $options[RequestOptions::JSON] = $params;
@@ -69,9 +92,9 @@ class Botobase {
         $code = $res->getStatusCode();
         $body = $res->getBody()->getContents();
         $json = json_validate($body) ? json_decode($body, true) : null;
-        if($code >= 200 && $code < 300) {
+        if ($code >= 200 && $code < 300) {
             return $json['result'] ?? null;
-        } elseif($error = $json['error'] ?? false) {
+        } elseif ($error = $json['error'] ?? false) {
             throw new Exception($error);
         } else {
             throw new Exception('Unexpected error ' . $code . ': ' . substr($body, 0, 100));

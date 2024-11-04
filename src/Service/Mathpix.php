@@ -30,12 +30,12 @@ class Mathpix {
         ]);
     }
 
-    public function parseImage(string $path, ?int $preferredAccountId = null): string {
+    public function parseImage(string $path): string {
         try {
             $path = realpath($path) ?: throw new Exception('Invalid path: ' . $path);
             $this->logger->debug(sprintf('Parsing image from %s', $path));
             $this->logger->debug('Requesting account...');
-            $account = $this->botobase->allocateAccount(Service::Mathpix, $preferredAccountId);
+            $account = $this->botobase->allocateAccount(Service::Mathpix);
             $this->logger->debug('Account allocated: #' . $account->id);
         } catch (Exception $exception) {
             $this->logger->error($exception->getMessage());

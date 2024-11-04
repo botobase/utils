@@ -26,9 +26,9 @@ class DeepSeek {
         ]);
     }
 
-    public function query(string|array $query, ?int $preferredAccountId = null): string {
+    public function query(string|array $query): string {
         $messages = is_string($query) ? [['role' => 'user', 'content' => $query]] : $query;
-        $account = $this->botobase->allocateAccount(Service::DeepSeek, $preferredAccountId);
+        $account = $this->botobase->allocateAccount(Service::DeepSeek);
         $req = ['model' => 'deepseek-chat', 'messages' => $messages];
         $start = microtime(true);
         try {
@@ -41,7 +41,7 @@ class DeepSeek {
             $body = $res->getBody()->getContents();
             $time = microtime(true) - $start;
             $json = json_decode($body, true);
-            $this->logger->debug('RESPONSE (' . $time . ' sec.)', (array)$json);
+            $this->logger->debug('RESPONSE (' . $time . ' sec.)', $json);
             $this->botobase->sendUsageReport($account, $time, $json['usage']);
             return $json['choices'][0]['message']['content'];
         } catch (Throwable $e) {
