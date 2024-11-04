@@ -95,9 +95,9 @@ class Botobase {
         if ($code >= 200 && $code < 300) {
             return $json['result'] ?? null;
         } elseif ($error = $json['error'] ?? false) {
-            throw new Exception($error);
+            throw new Exception('API: ' . $error);
         } else {
-            throw new Exception('Unexpected error ' . $code . ': ' . substr($body, 0, 100));
+            throw new Exception('API: Unexpected error ' . $code . ': ' . substr($body, 0, 100));
         }
     }
 
