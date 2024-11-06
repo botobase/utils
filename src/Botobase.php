@@ -14,6 +14,7 @@ use Yabx\Botobase\Dto\Gender;
 use Yabx\Botobase\Dto\Service;
 use Yabx\Botobase\Service\DeepSeek;
 use Yabx\Botobase\Service\Mathpix;
+use Yabx\Botobase\Service\OpenAi;
 use Yabx\Botobase\Utils\EnumNormalizer;
 
 class Botobase {
@@ -38,6 +39,11 @@ class Botobase {
 
     public function useDeepSeek(): DeepSeek {
         static $service = new DeepSeek($this);
+        return $service;
+    }
+
+    public function useOpenAi(): OpenAi {
+        static $service = new OpenAi($this);
         return $service;
     }
 
@@ -95,9 +101,9 @@ class Botobase {
         if ($code >= 200 && $code < 300) {
             return $json['result'] ?? null;
         } elseif ($error = $json['error'] ?? false) {
-            throw new Exception('API: ' . $error);
+            throw new Exception('Botobase: ' . $error);
         } else {
-            throw new Exception('API: Unexpected error ' . $code . ': ' . substr($body, 0, 100));
+            throw new Exception('Botobase: Unexpected error ' . $code . ': ' . substr($body, 0, 100));
         }
     }
 
